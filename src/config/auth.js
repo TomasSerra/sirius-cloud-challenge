@@ -4,21 +4,29 @@ import axios from "axios";
 
 dotenv.config();
 
+const authVariables = {
+  authDomain: process.env.AUTH0_DOMAIN,
+  authClientId: process.env.AUTH0_CLIENT_ID,
+  authClientSecret: process.env.AUTH0_CLIENT_SECRET,
+  authApiAudience: process.env.AUTH0_API_AUDIENCE,
+  authIssuer: process.env.AUTH0_ISSUER,
+};
+
 const jwtCheck = auth({
-  audience: process.env.AUTH0_API_AUDIENCE,
-  issuerBaseURL: process.env.AUTH0_ISSUER,
+  audience: authVariables.authApiAudience,
+  issuerBaseURL: authVariables.authIssuer,
   tokenSigningAlg: "RS256",
 });
 
 const getAuth0Token = async () => {
   try {
     const response = await axios.post(
-      `https://${process.env.AUTH0_DOMAIN}/oauth/token`,
+      `https://${authVariables.authDomain}/oauth/token`,
       {
         grant_type: "client_credentials",
-        client_id: process.env.AUTH0_CLIENT_ID,
-        client_secret: process.env.AUTH0_CLIENT_SECRET,
-        audience: `https://${process.env.AUTH0_DOMAIN}/api/v2/`,
+        client_id: authVariables.authClientId,
+        client_secret: authVariables.authClientSecret,
+        audience: `https://${authVariables.authDomain}/api/v2/`,
       }
     );
     return response.data.access_token;
@@ -31,4 +39,4 @@ const getAuth0Token = async () => {
   }
 };
 
-export { jwtCheck, getAuth0Token };
+export { jwtCheck, getAuth0Token, authVariables };
