@@ -5,11 +5,11 @@ import {
   unauthorizedErrorHandler,
 } from "./error-handler.js";
 
+import userRoutes from "./routes/user-routes.js";
+
 const PORT = 8081;
 
-app.get("/authorized", function (req, res) {
-  res.send("Secured Resource");
-});
+app.use("/api/auth", userRoutes);
 
 app.use(unauthorizedErrorHandler);
 app.use(notFoundHandler);
