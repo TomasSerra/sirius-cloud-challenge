@@ -1,5 +1,5 @@
 import { registerUser, loginUser } from "../services/user-service.js";
-import { resolveError } from "../responses/response-mapper.js";
+import { resolveError } from "../responses/response-handler.js";
 
 const register = async (req, res) => {
   try {

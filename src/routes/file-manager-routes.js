@@ -1,9 +1,14 @@
 import express from "express";
-import { upload, download } from "../controllers/file-manager-controllers.js";
+import {
+  upload,
+  download,
+  share,
+} from "../controllers/file-manager-controllers.js";
 
 const fileManagerRoutes = express.Router();
 
 fileManagerRoutes.post("/upload", upload);
-fileManagerRoutes.post("/download", download);
+fileManagerRoutes.get("/download", download);
+fileManagerRoutes.post("/share", share);
 
 export default fileManagerRoutes;
