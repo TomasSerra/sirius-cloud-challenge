@@ -1,12 +1,9 @@
 import express from "express";
 import { jwtCheck } from "./config/auth.js";
-import {
-  notFoundHandler,
-  generalErrorHandler,
-  unauthorizedErrorHandler,
-} from "./error-handler.js";
 
 import userRoutes from "./routes/user-routes.js";
+import fileManagerRoutes from "./routes/file-manager-routes.js";
+import { responseHandler } from "./responses/response-handler.js";
 
 const app = express();
 
@@ -17,10 +14,9 @@ app.use("/api/auth", userRoutes);
 
 //Authenticaton routes
 app.use(jwtCheck);
+app.use("/api/file", fileManagerRoutes);
 
-//Errors
-app.use(unauthorizedErrorHandler);
-app.use(notFoundHandler);
-app.use(generalErrorHandler);
+//Responses
+app.use(responseHandler);
 
 export default app;

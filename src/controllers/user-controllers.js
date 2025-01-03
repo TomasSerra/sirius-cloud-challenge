@@ -1,4 +1,5 @@
 import { registerUser, loginUser } from "../services/user-service.js";
+import { resolveError } from "../responses/response-mapper.js";
 
 const register = async (req, res) => {
   try {
@@ -6,17 +7,13 @@ const register = async (req, res) => {
 
     const result = await registerUser(email, password);
 
-    return res.status(201).json({
+    return res.status(200).json({
       message: "User registered successfully",
       data: result,
     });
   } catch (error) {
     console.error("Error during registration:", error.message);
-
-    return res.status(500).json({
-      message: "An error occurred during registration",
-      error: error.message,
-    });
+    return resolveError(error, res);
   }
 };
 
@@ -35,11 +32,7 @@ const login = async (req, res) => {
     return res.status(200).json({ message: "Login successful", data: result });
   } catch (error) {
     console.error("Error during login:", error.message);
-
-    return res.status(500).json({
-      message: "An error occurred during login",
-      error: error.message,
-    });
+    return resolveError(error, res);
   }
 };
 
