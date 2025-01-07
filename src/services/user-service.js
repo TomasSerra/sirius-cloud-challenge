@@ -44,6 +44,7 @@ const loginUser = async (email, password) => {
         client_id: authVariables.authClientId,
         client_secret: authVariables.authClientSecret,
         connection: "Username-Password-Authentication",
+        audience: authVariables.authApiAudience,
       },
       {
         headers: {

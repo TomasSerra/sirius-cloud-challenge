@@ -4,7 +4,6 @@ import {
   shareFile,
 } from "../services/file-service.js";
 import { resolveError } from "../responses/response-handler.js";
-import { extractNameFromToken } from "../utils/decode-token.js";
 import multer from "multer";
 
 const maxFileSize = 100 * 1024 * 1024; //100mb
@@ -23,16 +22,9 @@ const upload = async (req, res) => {
       });
     });
 
-    const username = await extractNameFromToken(req);
     const file = req.file;
 
-    if (!username || !file) {
-      return res
-        .status(400)
-        .json({ message: "Username and file are required" });
-    }
-
-    const result = await uploadFile(username, file.originalname, file.buffer);
+    const result = await uploadFile(file, req);
 
     return res.status(200).json({
       message: "File uploaded successfully",
@@ -51,16 +43,9 @@ const upload = async (req, res) => {
 
 const download = async (req, res) => {
   try {
-    const { filename } = req.query;
-    const username = await extractNameFromToken(req);
+    const { filename } = req.params;
 
-    if (!filename || !username) {
-      return res
-        .status(400)
-        .json({ message: "Username and filename are required" });
-    }
-
-    const fileContent = await downloadFile(username, filename);
+    const fileContent = await downloadFile(filename, req);
 
     if (!fileContent) {
       return res.status(404).json({ message: "File not found" });
@@ -78,15 +63,8 @@ const download = async (req, res) => {
 const share = async (req, res) => {
   try {
     const { filename, toUsername } = req.body;
-    const fromUsername = await extractNameFromToken(req);
 
-    if (!filename || !toUsername || !fromUsername) {
-      return res
-        .status(400)
-        .json({ message: "Username, filename and email are required" });
-    }
-
-    const result = await shareFile(fromUsername, toUsername, filename);
+    const result = await shareFile(toUsername, filename);
 
     return res.status(200).json({
       message: "File shared successfully",

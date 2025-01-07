@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
-import { authVariables } from "../config/auth";
+import { authVariables } from "../config/auth.js";
 
 const client = jwksClient({
   jwksUri: `https://${authVariables.authDomain}/.well-known/jwks.json`,
@@ -16,7 +16,7 @@ const getKey = (header, callback) => {
   });
 };
 
-const extractNameFromToken = (req) => {
+const extractUserIdFromToken = (req) => {
   return new Promise((resolve, reject) => {
     const authHeader = req.headers.authorization;
 
@@ -31,14 +31,15 @@ const extractNameFromToken = (req) => {
         return reject(new Error("Invalid or expired token"));
       }
 
-      const { name } = decoded;
-      if (!name) {
-        return reject(new Error("Name not found in token payload"));
+      const { sub } = decoded;
+      if (!sub) {
+        return reject(new Error("User id not found in token payload"));
       }
 
-      resolve(name);
+      const userId = sub.split("|")[1];
+      resolve(userId);
     });
   });
 };
 
-export { extractNameFromToken };
+export { extractUserIdFromToken };

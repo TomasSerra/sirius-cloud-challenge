@@ -8,7 +8,7 @@ import {
 const fileManagerRoutes = express.Router();
 
 fileManagerRoutes.post("/upload", upload);
-fileManagerRoutes.get("/download", download);
+fileManagerRoutes.get("/download/:filename", download);
 fileManagerRoutes.post("/share", share);
 
 export default fileManagerRoutes;
