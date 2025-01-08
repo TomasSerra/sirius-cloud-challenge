@@ -45,15 +45,13 @@ const download = async (req, res) => {
   try {
     const { filename } = req.params;
 
-    const fileContent = await downloadFile(filename, req);
+    const fileUrl = await downloadFile(filename, req);
 
-    if (!fileContent) {
+    if (!fileUrl) {
       return res.status(404).json({ message: "File not found" });
     }
 
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Content-Type", "application/octet-stream");
-    return res.status(200).send(fileContent);
+    return res.status(200).send(fileUrl);
   } catch (error) {
     console.error("Error during file download:", error.message);
     return resolveError(error, res);
@@ -62,14 +60,12 @@ const download = async (req, res) => {
 
 const share = async (req, res) => {
   try {
-    const { filename, toUsername } = req.body;
+    const { filename } = req.params;
+    const { toUserId } = req.query;
 
-    const result = await shareFile(toUsername, filename);
+    await shareFile(toUserId, filename, req);
 
-    return res.status(200).json({
-      message: "File shared successfully",
-      data: result,
-    });
+    return res.status(200).send("File shared successfully");
   } catch (error) {
     console.error("Error during file sharing:", error.message);
     return resolveError(error, res);

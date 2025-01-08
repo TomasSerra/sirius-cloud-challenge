@@ -1,9 +1,10 @@
-import S3StorageProvider from "./ab-storage-provider.js";
-import GCSStorageProvider from "./gc-storage-provider.js";
+import { getResponse } from "../responses/response-mapper.js";
+import { AzureStorageProvider } from "./ab-storage-provider.js";
+import { GCSStorageProvider } from "./gc-storage-provider.js";
 
 class StorageManager {
   constructor() {
-    this.providers = [new S3StorageProvider(), new GCSStorageProvider()];
+    this.providers = [new AzureStorageProvider(), new GCSStorageProvider()];
   }
 
   async uploadFile(file, userId) {
@@ -11,9 +12,10 @@ class StorageManager {
       try {
         return await provider.upload(file, userId);
       } catch (error) {
-        console.error(`Error uploading file to ${provider.name}: ${error}`);
+        console.error(`Error uploading file to ${provider}: ${error}`);
       }
     }
+    throw getResponse(500, "An error occurred uploading the file, retry later");
   }
 
   async downloadFile(filename, userId) {
@@ -21,9 +23,13 @@ class StorageManager {
       try {
         return await provider.download(filename, userId);
       } catch (error) {
-        console.error(`Error downloading file from ${provider.name}: ${error}`);
+        console.error(`Error downloading file from ${provider}: ${error}`);
       }
     }
+    throw getResponse(
+      500,
+      "An error occurred downloading the file, retry later"
+    );
   }
 }
 

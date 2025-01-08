@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Share {
+  fromUserId String
+  toUserId String
+  cloudFileName String
+
+  @@id([fromUserId, toUserId, cloudFileName])
+}
+
+model DailyStorage {
+  userId String
+  date String
+  mbUsed Float
+
+  @@id([userId, date])
+}
+
+model User {
+  id String @id
+  admin Boolean
+}

@@ -1,28 +1,25 @@
 import { Response } from "./response-provider.js";
 
-const responseHandler = (res) => {
+const responseHandler = (req, res, next) => {
   let response = res;
 
   if (!(response instanceof Response)) {
-    response = new Response(res.message || "Internal server error", 500);
+    res.status(500).send("An internal server error occurred");
   }
 
-  res.status(response.statusCode).json({
-    message: response.message,
-  });
+  if (res.status) {
+    res.status(response.statusCode).send(response.message);
+  } else {
+    next();
+  }
 };
 
 const resolveError = (error, res) => {
   if (error instanceof Response) {
-    return res.status(error.statusCode).json({
-      message: error.message,
-      statusCode: error.statusCode,
-    });
+    return res.status(error.statusCode).send(error.message);
   }
 
-  return res.status(500).json({
-    message: "An internal server error occurred",
-  });
+  return res.status(500).send("An internal server error occurred");
 };
 
 export { responseHandler, resolveError };

@@ -69,8 +69,16 @@ class GCSStorageProvider extends StorageProvider {
 
       return url[0];
     } catch (error) {
-      console.error("An error occurred generating the signed URL:", error);
-      throw getResponse(500, "Error generating signed URL");
+      console.error("An error occurred downloading the file:", error);
+      if (error.response) {
+        const { status, data } = error.response;
+        throw getResponse(
+          status,
+          data?.message || "An error occurred downloading the file"
+        );
+      } else {
+        throw getResponse(500, "An error occurred downloading the file");
+      }
     }
   }
 }

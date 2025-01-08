@@ -17,11 +17,11 @@ const errorMap = {
 };
 
 const getResponse = (statusCode, message) => {
-  if (!statusCode || !errorMap[statusCode]) {
-    return new InternalServerError(message);
+  if (typeof statusCode !== "number" || !errorMap[statusCode]) {
+    statusCode = 500;
   }
-  const Response = errorMap[statusCode];
-  return new Response(message);
+  const ErrorResponse = errorMap[statusCode];
+  return new ErrorResponse(message);
 };
 
 export { getResponse };
