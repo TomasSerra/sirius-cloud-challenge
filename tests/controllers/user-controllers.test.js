@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
 import { jest } from "@jest/globals";
-
-import { register, login } from "../../src/controllers/user-controllers.js";
 import { registerUser, loginUser } from "../../src/services/user-service.js";
+import { register, login } from "../../src/controllers/user-controllers.js";
 
-jest.mock("../../src/services/user-service.js");
+jest.mock("../../src/services/user-service.js", () => ({
+  registerUser: jest.fn(),
+  loginUser: jest.fn(),
+}));
 
 describe("Auth Controller", () => {
   let req, res;
@@ -17,12 +19,15 @@ describe("Auth Controller", () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
+
+    jest.clearAllMocks();
   });
 
   describe("register", () => {
     it("should register a user successfully", async () => {
       req.body = { email: "test@example.com", password: "password123" };
       const mockResult = { id: 1, email: "test@example.com" };
+
       registerUser.mockResolvedValue(mockResult);
 
       await register(req, res);
@@ -37,6 +42,7 @@ describe("Auth Controller", () => {
     it("should handle registration errors", async () => {
       req.body = { email: "test@example.com", password: "password123" };
       const mockError = new Error("Registration failed");
+
       registerUser.mockRejectedValue(mockError);
 
       await register(req, res);
@@ -53,6 +59,7 @@ describe("Auth Controller", () => {
     it("should login a user successfully", async () => {
       req.body = { email: "test@example.com", password: "password123" };
       const mockResult = { id: 1, email: "test@example.com" };
+
       loginUser.mockResolvedValue(mockResult);
 
       await login(req, res);
@@ -77,15 +84,15 @@ describe("Auth Controller", () => {
 
     it("should handle login errors", async () => {
       req.body = { email: "test@example.com", password: "password123" };
-      const mockError = new Error("Login failed");
-      loginUser.mockRejectedValue(mockError);
+
+      loginUser.mockRejectedValueOnce(new Error("Login failed"));
 
       await login(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         message: "An error occurred during login",
-        error: mockError.message,
+        error: "Login failed",
       });
     });
   });

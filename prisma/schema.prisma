@@ -25,5 +25,14 @@ model DailyStorage {
 
 model User {
   id String @id
-  admin Boolean
+  isAdmin Boolean
+}
+
+model Files {
+  fileId String @id @default(cuid())
+  userId String
+  cloudFileName String
+  originalName String
+  size Float
+  date String
 }

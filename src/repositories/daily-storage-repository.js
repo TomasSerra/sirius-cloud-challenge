@@ -29,4 +29,20 @@ export class DailyStorageRepository {
       data: { mbUsed },
     });
   }
+
+  async findAllToday() {
+    const today = new Date().toISOString().split("T")[0];
+    return prisma.dailyStorage.findMany({
+      where: {
+        date: today,
+        mbUsed: {
+          not: 0,
+        },
+      },
+      select: {
+        userId: true,
+        mbUsed: true,
+      },
+    });
+  }
 }

@@ -18,6 +18,15 @@ const jwtCheck = auth({
   tokenSigningAlg: "RS256",
 });
 
+const middlewareJwtCheck = (req, res, next) => {
+  jwtCheck(req, res, (err) => {
+    if (err) {
+      return res.status(401).send("Unauthorized: Invalid token");
+    }
+    next();
+  });
+};
+
 const getAuth0Token = async () => {
   try {
     const response = await axios.post(
@@ -39,4 +48,4 @@ const getAuth0Token = async () => {
   }
 };
 
-export { jwtCheck, getAuth0Token, authVariables };
+export { middlewareJwtCheck, getAuth0Token, authVariables };

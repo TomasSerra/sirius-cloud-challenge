@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getAuth0Token, authVariables } from "../config/auth.js";
 import { getResponse } from "../responses/response-mapper.js";
+import { UserRepository } from "../repositories/user-repository.js";
 
 const registerUser = async (email, password) => {
   try {
@@ -20,6 +21,7 @@ const registerUser = async (email, password) => {
         },
       }
     );
+    await createNewUserInDb(response);
     return response.data;
   } catch (error) {
     console.error("Error registering user:", error.message);
@@ -66,3 +68,9 @@ const loginUser = async (email, password) => {
 };
 
 export { registerUser, loginUser };
+
+async function createNewUserInDb(response) {
+  const userId = response.data.identities[0].user_id;
+  const userRepository = new UserRepository();
+  await userRepository.create(userId, false);
+}
