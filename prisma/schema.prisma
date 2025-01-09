@@ -10,9 +10,9 @@ datasource db {
 model Share {
   fromUserId String
   toUserId String
-  cloudFileName String
+  fileId String
 
-  @@id([fromUserId, toUserId, cloudFileName])
+  @@id([fromUserId, toUserId, fileId])
 }
 
 model DailyStorage {
@@ -21,6 +21,7 @@ model DailyStorage {
   mbUsed Float
 
   @@id([userId, date])
+  @@index([date])
 }
 
 model User {
@@ -28,7 +29,7 @@ model User {
   isAdmin Boolean
 }
 
-model Files {
+model File {
   fileId String @id @default(cuid())
   userId String
   cloudFileName String

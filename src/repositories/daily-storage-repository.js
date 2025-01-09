@@ -45,4 +45,23 @@ export class DailyStorageRepository {
       },
     });
   }
+
+  async findTotalMbUsedByMonth(userId, year, month) {
+    const monthFormatted = month.toString().padStart(2, "0");
+    const datePrefix = `${year}-${monthFormatted}`;
+
+    const result = await prisma.dailyStorage.aggregate({
+      _sum: {
+        mbUsed: true,
+      },
+      where: {
+        userId,
+        date: {
+          startsWith: datePrefix,
+        },
+      },
+    });
+
+    return result._sum.mbUsed || 0;
+  }
 }

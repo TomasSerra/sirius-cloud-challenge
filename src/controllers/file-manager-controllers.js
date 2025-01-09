@@ -43,9 +43,9 @@ const upload = async (req, res) => {
 
 const download = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const { fileId } = req.params;
 
-    const fileUrl = await downloadFile(filename, req);
+    const fileUrl = await downloadFile(fileId, req);
 
     if (!fileUrl) {
       return res.status(404).json({ message: "File not found" });
@@ -60,10 +60,10 @@ const download = async (req, res) => {
 
 const share = async (req, res) => {
   try {
-    const { filename } = req.params;
+    const { fileId } = req.params;
     const { toUserId } = req.query;
 
-    await shareFile(toUserId, filename, req);
+    await shareFile(toUserId, fileId, req);
 
     return res.status(200).send("File shared successfully");
   } catch (error) {

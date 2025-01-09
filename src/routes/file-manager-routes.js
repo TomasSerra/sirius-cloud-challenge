@@ -94,7 +94,7 @@ fileManagerRoutes.post("/upload", upload);
  *         description: Internal Server Error - Server error occurred
  */
 
-fileManagerRoutes.post("/share/:filename", share);
+fileManagerRoutes.post("/share/:fileId", share);
 
 /**
  * @swagger
@@ -129,6 +129,6 @@ fileManagerRoutes.post("/share/:filename", share);
  *         description: Internal Server Error - Server error occurred
  */
 
-fileManagerRoutes.get("/download/:filename", download);
+fileManagerRoutes.get("/download/:fileId", download);
 
 export default fileManagerRoutes;

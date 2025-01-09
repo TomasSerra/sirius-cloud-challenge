@@ -6,7 +6,6 @@ import {
 } from "@azure/storage-blob";
 import StorageProvider from "./storage-provider-interface.js";
 import { getResponse } from "../responses/response-mapper.js";
-import { hashFilename } from "../utils/hash-filename.js";
 
 class AzureStorageProvider extends StorageProvider {
   constructor() {
@@ -25,7 +24,7 @@ class AzureStorageProvider extends StorageProvider {
     this.sharedKeyCredential = sharedKeyCredential;
   }
 
-  async upload(file, userId) {
+  async upload(file, hashedFilename, userId) {
     try {
       if (!file || !file.originalname || !file.buffer) {
         throw getResponse(500, "Invalid file object");
@@ -34,7 +33,6 @@ class AzureStorageProvider extends StorageProvider {
         throw getResponse(500, "Invalid userId");
       }
 
-      const hashedFilename = hashFilename(file.originalname);
       const blobName = `${userId}/${hashedFilename}`;
       const containerClient = this.blobServiceClient.getContainerClient(
         this.containerName

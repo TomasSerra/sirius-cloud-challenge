@@ -1,7 +1,6 @@
 import StorageProvider from "./storage-provider-interface.js";
 import { Storage } from "@google-cloud/storage";
 import { getResponse } from "../responses/response-mapper.js";
-import { hashFilename } from "../utils/hash-filename.js";
 
 class GCSStorageProvider extends StorageProvider {
   constructor() {
@@ -13,16 +12,15 @@ class GCSStorageProvider extends StorageProvider {
     this.bucketName = process.env.GCP_BUCKET_NAME;
   }
 
-  async upload(file, userId) {
+  async upload(file, hashedFilename, userId) {
     try {
-      if (!file || !file.originalname || !file.buffer) {
+      if (!file || !hashedFilename || !file.buffer) {
         throw getResponse(500, "Invalid file object");
       }
       if (!userId) {
         throw getResponse(500, "Invalid userId");
       }
 
-      const hashedFilename = hashFilename(file.originalname);
       const filePath = `${userId}/${hashedFilename}`;
       const bucket = this.gcs.bucket(`gs://${this.bucketName}`);
       const blob = bucket.file(filePath);

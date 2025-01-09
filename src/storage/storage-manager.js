@@ -7,21 +7,28 @@ class StorageManager {
     this.providers = [new AzureStorageProvider(), new GCSStorageProvider()];
   }
 
-  async uploadFile(file, userId) {
+  async uploadFile(file, hashedFilename, userId) {
+    let successUpload = false;
     for (const provider of this.providers) {
       try {
-        return await provider.upload(file, userId);
+        await provider.upload(file, hashedFilename, userId);
+        successUpload = true;
       } catch (error) {
-        console.error(`Error uploading file to ${provider}: ${error}`);
+        console.error(`Error uploading file: ${error}`);
       }
     }
-    throw getResponse(500, "An error occurred uploading the file, retry later");
+    if (!successUpload) {
+      throw getResponse(
+        500,
+        "An error occurred uploading the file, retry later"
+      );
+    }
   }
 
-  async downloadFile(filename, userId) {
+  async downloadFile(cloudFilename, userId) {
     for (const provider of this.providers) {
       try {
-        return await provider.download(filename, userId);
+        return await provider.download(cloudFilename, userId);
       } catch (error) {
         console.error(`Error downloading file from ${provider}: ${error}`);
       }

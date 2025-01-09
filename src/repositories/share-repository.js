@@ -4,13 +4,13 @@ import { getResponse } from "../responses/response-mapper.js";
 const prisma = new PrismaClient();
 
 export class ShareRepository {
-  async create(fromUserId, toUserId, cloudFileName) {
+  async create(fromUserId, toUserId, fileId) {
     try {
       return await prisma.share.create({
         data: {
           fromUserId,
           toUserId,
-          cloudFileName,
+          fileId,
         },
       });
     } catch (error) {
@@ -26,5 +26,14 @@ export class ShareRepository {
         );
       }
     }
+  }
+
+  async findByFileIdAndToUserId(fileId, toUserId) {
+    return await prisma.share.findFirst({
+      where: {
+        fileId: fileId,
+        toUserId,
+      },
+    });
   }
 }
