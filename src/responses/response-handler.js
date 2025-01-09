@@ -19,7 +19,10 @@ const resolveError = (error, res) => {
     return res.status(error.statusCode).send(error.message);
   }
   if (res.status) {
-    return res.status(res.statusCode).send(res.message);
+    console.log(res.statusCode);
+    return res
+      .status(res.statusCode != 200 ? res.statusCode : 500)
+      .send(res.message);
   }
 
   return res.status(500).send("An internal server error occurred");

@@ -47,8 +47,7 @@ export class DailyStorageRepository {
   }
 
   async findTotalMbUsedByMonth(userId, year, month) {
-    const monthFormatted = month.toString().padStart(2, "0");
-    const datePrefix = `${year}-${monthFormatted}`;
+    const datePrefix = `${year}-${month}`;
 
     const result = await prisma.dailyStorage.aggregate({
       _sum: {

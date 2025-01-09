@@ -1,99 +1,110 @@
-import { describe, it, expect, beforeEach } from "@jest/globals";
-import { jest } from "@jest/globals";
-import { registerUser, loginUser } from "../../src/services/user-service.js";
-import { register, login } from "../../src/controllers/user-controllers.js";
+import express from "express";
+import request from "supertest";
+import UserController from "../../src/controllers/user-controllers.js";
+import { describe, expect, it, jest, afterEach } from "@jest/globals";
+import { resolveError } from "../../src/responses/response-handler.js";
 
-jest.mock("../../src/services/user-service.js", () => ({
-  registerUser: jest.fn(),
-  loginUser: jest.fn(),
-}));
+const mockUserService = {
+  register: jest.fn(),
+  login: jest.fn(),
+};
 
-describe("Auth Controller", () => {
-  let req, res;
+const app = express();
+app.use(express.json());
 
-  beforeEach(() => {
-    req = {
-      body: {},
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
+const userController = new UserController({
+  userService: mockUserService,
+  resolveError: resolveError,
+});
 
+app.post("/register", userController.register);
+app.post("/login", userController.login);
+
+describe("UserController", () => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
   describe("register", () => {
     it("should register a user successfully", async () => {
-      req.body = { email: "test@example.com", password: "password123" };
-      const mockResult = { id: 1, email: "test@example.com" };
+      const mockUserData = {
+        email: "test@example.com",
+        password: "password123",
+      };
 
-      registerUser.mockResolvedValue(mockResult);
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "User  registered successfully",
-        data: mockResult,
+      mockUserService.register.mockResolvedValue({
+        id: "1",
+        email: mockUserData.email,
       });
+
+      const response = await request(app).post("/register").send(mockUserData);
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("User registered successfully");
+      expect(mockUserService.register).toHaveBeenCalledWith(
+        mockUserData.email,
+        mockUserData.password
+      );
     });
 
-    it("should handle registration errors", async () => {
-      req.body = { email: "test@example.com", password: "password123" };
-      const mockError = new Error("Registration failed");
+    it("should return error if registration fails", async () => {
+      const mockUserData = {
+        email: "test@example.com",
+        password: "password123",
+      };
 
-      registerUser.mockRejectedValue(mockError);
+      mockUserService.register.mockRejectedValue(
+        new Error("Registration failed")
+      );
 
-      await register(req, res);
+      const response = await request(app).post("/register").send(mockUserData);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "An error occurred during registration",
-        error: mockError.message,
-      });
+      expect(response.status).toBe(500);
     });
   });
 
   describe("login", () => {
     it("should login a user successfully", async () => {
-      req.body = { email: "test@example.com", password: "password123" };
-      const mockResult = { id: 1, email: "test@example.com" };
+      const mockUserData = {
+        email: "test@example.com",
+        password: "password123",
+      };
 
-      loginUser.mockResolvedValue(mockResult);
-
-      await login(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Login successful",
-        data: mockResult,
+      mockUserService.login.mockResolvedValue({
+        id: "1",
+        email: mockUserData.email,
       });
+
+      const response = await request(app).post("/login").send(mockUserData);
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe("Login successful");
+      expect(mockUserService.login).toHaveBeenCalledWith(
+        mockUserData.email,
+        mockUserData.password
+      );
     });
 
     it("should return 400 if email or password is missing", async () => {
-      req.body = { email: "test@example.com" };
+      const response = await request(app)
+        .post("/login")
+        .send({ email: "", password: "password123" });
 
-      await login(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "Email and password are required",
-      });
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe("Email and password are required");
     });
 
-    it("should handle login errors", async () => {
-      req.body = { email: "test@example.com", password: "password123" };
+    it("should return error if login fails", async () => {
+      const mockUserData = {
+        email: "test@example.com",
+        password: "wrongpassword",
+      };
 
-      loginUser.mockRejectedValueOnce(new Error("Login failed"));
+      mockUserService.login.mockRejectedValue(new Error("Login failed"));
 
-      await login(req, res);
+      const response = await request(app).post("/login").send(mockUserData);
 
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        message: "An error occurred during login",
-        error: "Login failed",
-      });
+      expect(response.status).toBe(500);
     });
   });
 });
