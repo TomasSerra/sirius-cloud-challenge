@@ -10,4 +10,4 @@ const hashFilename = (filename) => {
   return hashedFilename;
 };
 
-export default hashFilename;
+export { hashFilename };

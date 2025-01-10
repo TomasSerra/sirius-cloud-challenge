@@ -8,14 +8,18 @@ import { StorageManager } from "../storage/storage-manager.js";
 import { resolveError } from "../responses/response-handler.js";
 import { TransactionManager } from "../repositories/transactional-manager.js";
 import { hashFilename } from "../utils/hash-filename.js";
+import { extractUserIdFromToken } from "../utils/decode-token.js";
+import { AzureStorageProvider } from "../storage/providers/ab-storage-provider.js";
+import { GCSStorageProvider } from "../storage/providers/gc-storage-provider.js";
 
 export function setupFileController() {
   const fileRepository = new FileRepository();
   const shareRepository = new ShareRepository();
   const dailyStorageRepository = new DailyStorageRepository();
   const userRepository = new UserRepository();
-  const storageManager = new StorageManager();
   const transactionalManager = new TransactionManager();
+  const providers = [new GCSStorageProvider(), new AzureStorageProvider()];
+  const storageManager = new StorageManager({ providers });
 
   const fileService = new FileService({
     fileRepository,
@@ -24,6 +28,7 @@ export function setupFileController() {
     userRepository,
     storageManager,
     transactionalManager,
+    extractUserIdFromToken,
     hashFilename,
   });
 

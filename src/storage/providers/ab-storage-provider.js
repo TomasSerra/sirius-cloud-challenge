@@ -5,7 +5,7 @@ import {
   BlobSASPermissions,
 } from "@azure/storage-blob";
 import StorageProvider from "./storage-provider-interface.js";
-import { getResponse } from "../responses/response-mapper.js";
+import { getResponse } from "../../responses/response-mapper.js";
 
 class AzureStorageProvider extends StorageProvider {
   constructor() {

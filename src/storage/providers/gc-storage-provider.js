@@ -1,6 +1,6 @@
 import StorageProvider from "./storage-provider-interface.js";
 import { Storage } from "@google-cloud/storage";
-import { getResponse } from "../responses/response-mapper.js";
+import { getResponse } from "../../responses/response-mapper.js";
 
 class GCSStorageProvider extends StorageProvider {
   constructor() {

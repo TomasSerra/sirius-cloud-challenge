@@ -1,10 +1,8 @@
 import { getResponse } from "../responses/response-mapper.js";
-import { AzureStorageProvider } from "./ab-storage-provider.js";
-import { GCSStorageProvider } from "./gc-storage-provider.js";
 
 class StorageManager {
-  constructor() {
-    this.providers = [new AzureStorageProvider(), new GCSStorageProvider()];
+  constructor({ providers }) {
+    this.providers = providers;
   }
 
   async uploadFile(file, hashedFilename, userId) {
