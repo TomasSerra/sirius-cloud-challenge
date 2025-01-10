@@ -1,30 +1,14 @@
-import axios from "axios";
-import { getAuth0Token, authVariables } from "../config/auth.js";
 import { getResponse } from "../responses/response-mapper.js";
 
 class UserService {
-  constructor({ userRepository }) {
+  constructor({ userRepository, authManager }) {
     this.userRepository = userRepository;
+    this.authManager = authManager;
   }
 
   async register(email, password) {
     try {
-      const accessToken = await getAuth0Token();
-
-      const response = await axios.post(
-        `https://${authVariables.authDomain}/api/v2/users`,
-        {
-          email,
-          password,
-          connection: "Username-Password-Authentication",
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await this.authManager.register(email, password);
       await this.#createNewUserInDb(response);
       return response.data;
     } catch (error) {
@@ -38,28 +22,8 @@ class UserService {
   }
 
   async login(email, password) {
-    const accessToken = await getAuth0Token();
-
     try {
-      const response = await axios.post(
-        `https://${authVariables.authDomain}/oauth/token`,
-        {
-          grant_type: "password",
-          username: email,
-          password,
-          client_id: authVariables.authClientId,
-          client_secret: authVariables.authClientSecret,
-          connection: "Username-Password-Authentication",
-          audience: authVariables.authApiAudience,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
+      const response = await this.authManager.login(email, password);
       return response.data;
     } catch (error) {
       console.error(

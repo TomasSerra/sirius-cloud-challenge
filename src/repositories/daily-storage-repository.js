@@ -14,8 +14,8 @@ export class DailyStorageRepository {
     });
   }
 
-  async create(transaction, data) {
-    return transaction.dailyStorage.create({ data });
+  async create(transaction, userId, date, mbUsed) {
+    return transaction.dailyStorage.create({ data: { userId, date, mbUsed } });
   }
 
   async update(transaction, userId, date, mbUsed) {

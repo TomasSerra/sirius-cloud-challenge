@@ -25,10 +25,16 @@ describe("AdminController", () => {
 
   describe("stats", () => {
     it("should fetch stats successfully", async () => {
-      const mockStatsData = {
-        users: 100,
-        posts: 50,
-      };
+      const mockStatsData = [
+        {
+          userId: "fh2j345b6j35",
+          mbUsed: 100.37,
+        },
+        {
+          userId: "j53n56ni653on",
+          mbUsed: 0.067213,
+        },
+      ];
 
       mockAdminService.getStats.mockResolvedValue(mockStatsData);
 

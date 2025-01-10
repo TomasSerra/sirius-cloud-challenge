@@ -26,7 +26,10 @@ class FileService {
     }
     const limitExceeded = await this.#isMonthlyStorageLimitExceeded(userId);
     if (limitExceeded) {
-      throw getResponse(403, "Monthly storage limit exceeded");
+      throw getResponse(
+        403,
+        "Monthly storage limit exceeded, try again next month"
+      );
     }
     try {
       const originalFilename = file.originalname;
@@ -149,12 +152,7 @@ class FileService {
         updatedMbUsed
       );
     } else {
-      return this.dailyStorageRepository.create({
-        tx,
-        userId,
-        date: today,
-        mbUsed,
-      });
+      return this.dailyStorageRepository.create(tx, userId, today, mbUsed);
     }
   }
 
