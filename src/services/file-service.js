@@ -1,5 +1,4 @@
 import { getResponse } from "../responses/response-mapper.js";
-import { hashFilename } from "../utils/hash-filename.js";
 
 class FileService {
   constructor({
@@ -10,6 +9,7 @@ class FileService {
     userRepository,
     transactionalManager,
     extractUserIdFromToken,
+    hashFilename,
   }) {
     this.storageManager = storageManager;
     this.fileRepository = fileRepository;
@@ -18,6 +18,7 @@ class FileService {
     this.userRepository = userRepository;
     this.transactionalManager = transactionalManager;
     this.extractUserIdFromToken = extractUserIdFromToken;
+    this.hashFilename = hashFilename;
   }
 
   async upload(file, req) {
@@ -34,7 +35,7 @@ class FileService {
     }
     try {
       const originalFilename = file.originalname;
-      const hashedFilename = hashFilename(originalFilename);
+      const hashedFilename = this.hashFilename(originalFilename);
       const mbUsed = file.size / 1024 ** 2;
       const result = await this.transactionalManager.transaction(async (tx) => {
         await this.#createOrUpdateDailyStorage(tx, userId, mbUsed);

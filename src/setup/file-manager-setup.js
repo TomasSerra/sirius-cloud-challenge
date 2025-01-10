@@ -7,6 +7,7 @@ import { UserRepository } from "../repositories/user-repository.js";
 import { StorageManager } from "../storage/storage-manager.js";
 import { resolveError } from "../responses/response-handler.js";
 import { TransactionManager } from "../repositories/transactional-manager.js";
+import { hashFilename } from "../utils/hash-filename.js";
 
 export function setupFileController() {
   const fileRepository = new FileRepository();
@@ -23,6 +24,7 @@ export function setupFileController() {
     userRepository,
     storageManager,
     transactionalManager,
+    hashFilename,
   });
 
   const fileController = new FileController({
