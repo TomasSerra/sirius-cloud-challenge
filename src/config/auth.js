@@ -1,4 +1,3 @@
-import { auth } from "express-oauth2-jwt-bearer";
 import dotenv from "dotenv";
 import axios from "axios";
 
@@ -12,40 +11,69 @@ const authVariables = {
   authIssuer: process.env.AUTH0_ISSUER,
 };
 
-const jwtCheck = auth({
-  audience: authVariables.authApiAudience,
-  issuerBaseURL: authVariables.authIssuer,
-  tokenSigningAlg: "RS256",
-});
-
-const middlewareJwtCheck = (req, res, next) => {
-  jwtCheck(req, res, (err) => {
-    if (err) {
-      return res.status(401).send("Unauthorized: Invalid token");
+class AuthManager {
+  async #getAuth0Token() {
+    try {
+      const response = await axios.post(
+        `https://${authVariables.authDomain}/oauth/token`,
+        {
+          grant_type: "client_credentials",
+          client_id: authVariables.authClientId,
+          client_secret: authVariables.authClientSecret,
+          audience: `https://${authVariables.authDomain}/api/v2/`,
+        }
+      );
+      return response.data.access_token;
+    } catch (error) {
+      console.error(
+        "Error al obtener el token:",
+        error.response ? error.response.data : error.message
+      );
     }
-    next();
-  });
-};
+  }
 
-const getAuth0Token = async () => {
-  try {
+  async login(email, password) {
+    const accessToken = await this.#getAuth0Token();
+
     const response = await axios.post(
       `https://${authVariables.authDomain}/oauth/token`,
       {
-        grant_type: "client_credentials",
+        grant_type: "password",
+        username: email,
+        password,
         client_id: authVariables.authClientId,
         client_secret: authVariables.authClientSecret,
-        audience: `https://${authVariables.authDomain}/api/v2/`,
+        connection: "Username-Password-Authentication",
+        audience: authVariables.authApiAudience,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
       }
     );
-    return response.data.access_token;
-  } catch (error) {
-    console.error(
-      "Error al obtener el token:",
-      error.response ? error.response.data : error.message
-    );
-    return null;
+    return response;
   }
-};
 
-export { middlewareJwtCheck, getAuth0Token, authVariables };
+  async register(email, password) {
+    const accessToken = await this.#getAuth0Token();
+    const response = await axios.post(
+      `https://${authVariables.authDomain}/api/v2/users`,
+      {
+        email,
+        password,
+        connection: "Username-Password-Authentication",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response;
+  }
+}
+
+export { AuthManager, authVariables };

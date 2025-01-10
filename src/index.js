@@ -1,10 +1,10 @@
 import express from "express";
-import { middlewareJwtCheck } from "./config/auth.js";
+import { middlewareJwtCheck } from "./middleware/auth-middleware.js";
 
 import userRoutes from "./routes/user-routes.js";
 import fileManagerRoutes from "./routes/file-manager-routes.js";
 import adminRoutes from "./routes/admin-routes.js";
-import { responseHandler } from "./responses/response-handler.js";
+import { responseHandler } from "./middleware/response-middleware.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
 

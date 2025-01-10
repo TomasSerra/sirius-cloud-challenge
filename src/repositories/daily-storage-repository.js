@@ -3,8 +3,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export class DailyStorageRepository {
-  async findByUserIdAndDate(userId, date) {
-    return prisma.dailyStorage.findUnique({
+  async findByUserIdAndDate(transaction, userId, date) {
+    return transaction.dailyStorage.findUnique({
       where: {
         userId_date: {
           userId,
@@ -14,12 +14,12 @@ export class DailyStorageRepository {
     });
   }
 
-  async create(data) {
-    return prisma.dailyStorage.create({ data });
+  async create(transaction, userId, date, mbUsed) {
+    return transaction.dailyStorage.create({ data: { userId, date, mbUsed } });
   }
 
-  async update(userId, date, mbUsed) {
-    return prisma.dailyStorage.update({
+  async update(transaction, userId, date, mbUsed) {
+    return transaction.dailyStorage.update({
       where: {
         userId_date: {
           userId,
@@ -47,8 +47,7 @@ export class DailyStorageRepository {
   }
 
   async findTotalMbUsedByMonth(userId, year, month) {
-    const monthFormatted = month.toString().padStart(2, "0");
-    const datePrefix = `${year}-${monthFormatted}`;
+    const datePrefix = `${year}-${month}`;
 
     const result = await prisma.dailyStorage.aggregate({
       _sum: {

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url = env("DATABASE_URL")
 }
 
 model Share {
@@ -21,7 +21,7 @@ model DailyStorage {
   mbUsed Float
 
   @@id([userId, date])
-  @@index([date])
+  @@index([date, userId])
 }
 
 model User {
