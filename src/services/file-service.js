@@ -9,12 +9,14 @@ class FileService {
     shareRepository,
     dailyStorageRepository,
     userRepository,
+    transactionalManager,
   }) {
     this.storageManager = storageManager;
     this.fileRepository = fileRepository;
     this.shareRepository = shareRepository;
     this.dailyStorageRepository = dailyStorageRepository;
     this.userRepository = userRepository;
+    this.transactionalManager = transactionalManager;
   }
 
   async upload(file, req) {
@@ -29,20 +31,23 @@ class FileService {
     try {
       const originalFilename = file.originalname;
       const hashedFilename = hashFilename(originalFilename);
-      const response = await this.storageManager.uploadFile(
-        file,
-        hashedFilename,
-        userId
-      );
       const mbUsed = file.size / 1024 ** 2;
-      await this.#createOrUpdateDailyStorage(userId, mbUsed);
-      await this.#createFileInDb(
-        userId,
-        hashedFilename,
-        originalFilename,
-        mbUsed
-      );
-      return response;
+      const result = await this.transactionalManager.transaction(async (tx) => {
+        await this.#createOrUpdateDailyStorage(tx, userId, mbUsed);
+        await this.#createFileInDb(
+          tx,
+          userId,
+          hashedFilename,
+          originalFilename,
+          mbUsed
+        );
+        return await this.storageManager.uploadFile(
+          file,
+          hashedFilename,
+          userId
+        );
+      });
+      return result;
     } catch (error) {
       this.resolveError(error, "An error occurred uploading the file");
     }
@@ -129,17 +134,23 @@ class FileService {
     return await this.shareRepository.findByFileIdAndToUserId(fileId, userId);
   }
 
-  async #createOrUpdateDailyStorage(userId, mbUsed) {
+  async #createOrUpdateDailyStorage(tx, userId, mbUsed) {
     const today = new Date().toISOString().split("T")[0];
 
     const existingRecord =
-      await this.dailyStorageRepository.findByUserIdAndDate(userId, today);
+      await this.dailyStorageRepository.findByUserIdAndDate(tx, userId, today);
 
     if (existingRecord) {
       const updatedMbUsed = existingRecord.mbUsed + mbUsed;
-      return this.dailyStorageRepository.update(userId, today, updatedMbUsed);
+      return this.dailyStorageRepository.update(
+        tx,
+        userId,
+        today,
+        updatedMbUsed
+      );
     } else {
       return this.dailyStorageRepository.create({
+        tx,
         userId,
         date: today,
         mbUsed,
@@ -147,12 +158,15 @@ class FileService {
     }
   }
 
-  async #createFileInDb(userId, hashedFilename, originalFilename, mbUsed) {
+  async #createFileInDb(tx, userId, hashedFilename, originalFilename, mbUsed) {
+    const date = new Date().toISOString().split("T")[0];
     return this.fileRepository.create(
+      tx,
       userId,
       hashedFilename,
       originalFilename,
-      mbUsed
+      mbUsed,
+      date
     );
   }
 

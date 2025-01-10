@@ -3,9 +3,8 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export class FileRepository {
-  async create(userId, cloudFileName, originalName, size) {
-    const date = new Date().toISOString().split("T")[0];
-    return await prisma.file.create({
+  async create(transaction, userId, cloudFileName, originalName, size, date) {
+    const createdFile = await transaction.file.create({
       data: {
         userId,
         cloudFileName,
@@ -14,6 +13,7 @@ export class FileRepository {
         size,
       },
     });
+    return createdFile.fileId;
   }
 
   async findByFileId(fileId) {
