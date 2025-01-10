@@ -1,5 +1,4 @@
 import { getResponse } from "../responses/response-mapper.js";
-import { extractUserIdFromToken } from "../utils/decode-token.js";
 import { hashFilename } from "../utils/hash-filename.js";
 
 class FileService {
@@ -10,6 +9,7 @@ class FileService {
     dailyStorageRepository,
     userRepository,
     transactionalManager,
+    extractUserIdFromToken,
   }) {
     this.storageManager = storageManager;
     this.fileRepository = fileRepository;
@@ -17,10 +17,11 @@ class FileService {
     this.dailyStorageRepository = dailyStorageRepository;
     this.userRepository = userRepository;
     this.transactionalManager = transactionalManager;
+    this.extractUserIdFromToken = extractUserIdFromToken;
   }
 
   async upload(file, req) {
-    const userId = await extractUserIdFromToken(req);
+    const userId = await this.extractUserIdFromToken(req);
     if (!userId || !file) {
       throw getResponse(400, "userId and file are required");
     }
@@ -57,7 +58,7 @@ class FileService {
   }
 
   async download(fileId, req) {
-    const userId = await extractUserIdFromToken(req);
+    const userId = await this.extractUserIdFromToken(req);
     const file = await this.#getOwnOrSharedFile(fileId, userId);
     const cloudFilename = file.cloudFileName;
     const ownerUserId = file.userId;
@@ -69,7 +70,7 @@ class FileService {
   }
 
   async share(toUserId, fileId, req) {
-    const userId = await extractUserIdFromToken(req);
+    const userId = await this.extractUserIdFromToken(req);
     if (!userId || !fileId || !toUserId) {
       throw getResponse(400, "userId, filename, and toUserId are required");
     }
