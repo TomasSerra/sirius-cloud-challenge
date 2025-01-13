@@ -10,10 +10,13 @@ const mockFileService = {
   share: jest.fn(),
 };
 
+const mockExtractUserIdFromToken = jest.fn();
+
 const app = express();
 const fileController = new FileController({
   fileService: mockFileService,
   resolveError: resolveError,
+  extractUserIdFromToken: mockExtractUserIdFromToken,
 });
 
 app.post("/upload", fileController.upload);
@@ -36,7 +39,8 @@ describe("FileController", () => {
         encoding: "7bit",
         fieldname: "file",
       };
-
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
       mockFileService.upload.mockResolvedValue({
         url: "http://example.com/test.txt",
       });
@@ -47,10 +51,7 @@ describe("FileController", () => {
 
       expect(response.status).toBe(200);
       expect(response.text).toBe("File uploaded successfully");
-      expect(mockFileService.upload).toHaveBeenCalledWith(
-        file,
-        expect.anything()
-      );
+      expect(mockFileService.upload).toHaveBeenCalledWith(file, userId);
     });
 
     it("should return 413 if file size exceeds limit", async () => {
@@ -69,20 +70,21 @@ describe("FileController", () => {
     it("should download a file successfully", async () => {
       const fileId = "123";
       mockFileService.download.mockResolvedValue("http://example.com/test.txt");
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
 
       const response = await request(app).get(`/download/${fileId}`);
 
       expect(response.status).toBe(200);
       expect(response.text).toBe("http://example.com/test.txt");
-      expect(mockFileService.download).toHaveBeenCalledWith(
-        fileId,
-        expect.anything()
-      );
+      expect(mockFileService.download).toHaveBeenCalledWith(fileId, userId);
     });
 
     it("should return 404 if file not found", async () => {
       const fileId = "123";
       mockFileService.download.mockResolvedValue(null);
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
 
       const response = await request(app).get(`/download/${fileId}`);
 
@@ -95,7 +97,8 @@ describe("FileController", () => {
     it("should share a file successfully", async () => {
       const fileId = "123";
       const toUserId = "456";
-
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
       mockFileService.share.mockResolvedValue();
 
       const response = await request(app).post(
@@ -108,7 +111,7 @@ describe("FileController", () => {
       expect(mockFileService.share).toHaveBeenCalledWith(
         toUserId,
         fileId,
-        expect.anything()
+        userId
       );
     });
   });

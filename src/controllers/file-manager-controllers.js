@@ -8,9 +8,10 @@ const uploadConfig = multer({
 }).single("file");
 
 class FileController {
-  constructor({ fileService, resolveError }) {
+  constructor({ fileService, resolveError, extractUserIdFromToken }) {
     this.fileService = fileService;
     this.resolveError = resolveError;
+    this.extractUserId = extractUserIdFromToken;
 
     this.upload = this.upload.bind(this);
     this.download = this.download.bind(this);
@@ -28,14 +29,16 @@ class FileController {
 
       const file = req.file;
 
-      await this.fileService.upload(file, req);
+      const userId = await this.extractUserId(req).catch((error) => {
+        return this.resolveError(error, res);
+      });
+
+      await this.fileService.upload(file, userId);
 
       return res.status(200).send("File uploaded successfully");
     } catch (err) {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-        return res
-          .status(413)
-          .send(`File size exceeds the limit of ${maxFileSize}mb`);
+        return res.status(413).send(`File size exceeds the limit`);
       }
       console.error("Error during file upload:", err.message);
       return this.resolveError(err, res);
@@ -46,7 +49,11 @@ class FileController {
     try {
       const { fileId } = req.params;
 
-      const fileUrl = await this.fileService.download(fileId, req);
+      const userId = await this.extractUserId(req).catch((error) => {
+        return this.resolveError(error, res);
+      });
+
+      const fileUrl = await this.fileService.download(fileId, userId);
 
       if (!fileUrl) {
         return res.status(404).send("File not found");
@@ -64,7 +71,11 @@ class FileController {
       const { fileId } = req.params;
       const { toUserId } = req.query;
 
-      await this.fileService.share(toUserId, fileId, req);
+      const userId = await this.extractUserId(req).catch((error) => {
+        return this.resolveError(error, res);
+      });
+
+      await this.fileService.share(toUserId, fileId, userId);
 
       return res.status(200).send("File shared successfully");
     } catch (error) {

@@ -1,5 +1,4 @@
 import { getResponse } from "../responses/response-mapper.js";
-import { extractUserIdFromToken } from "../utils/decode-token.js";
 
 class AdminService {
   constructor({ dailyStorageRepository, userRepository }) {
@@ -7,10 +6,7 @@ class AdminService {
     this.userRepository = userRepository;
   }
 
-  async getStats(req) {
-    const userId = await extractUserIdFromToken(req).catch((error) => {
-      throw getResponse(400, error.message);
-    });
+  async getStats(userId) {
     await this.#checkPermission(userId);
     return await this.dailyStorageRepository.findAllToday();
   }

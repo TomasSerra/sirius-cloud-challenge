@@ -8,12 +8,15 @@ const mockAdminService = {
   getStats: jest.fn(),
 };
 
+const mockExtractUserIdFromToken = jest.fn();
+
 const app = express();
 app.use(express.json());
 
 const adminController = new AdminController({
   adminService: mockAdminService,
   resolveError,
+  extractUserIdFromToken: mockExtractUserIdFromToken,
 });
 
 app.get("/stats", adminController.stats);
@@ -35,7 +38,8 @@ describe("AdminController", () => {
           mbUsed: 0.067213,
         },
       ];
-
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
       mockAdminService.getStats.mockResolvedValue(mockStatsData);
 
       const response = await request(app).get("/stats");
@@ -43,12 +47,24 @@ describe("AdminController", () => {
       expect(response.status).toBe(200);
       expect(response.body.message).toBe("Stats fetched successfully");
       expect(response.body.data).toEqual(mockStatsData);
-      expect(mockAdminService.getStats).toHaveBeenCalledWith(expect.anything());
+      expect(mockAdminService.getStats).toHaveBeenCalledWith(userId);
     });
 
-    it("should return error if fetching stats fails", async () => {
+    it("should return error stats service fails", async () => {
       mockAdminService.getStats.mockRejectedValue(
         new Error("Failed to fetch stats")
+      );
+      const userId = "fh2j345b6j35";
+      mockExtractUserIdFromToken.mockResolvedValue(userId);
+
+      const response = await request(app).get("/stats");
+
+      expect(response.status).toBe(500);
+    });
+
+    it("should return error if userId is missing", async () => {
+      mockExtractUserIdFromToken.mockRejectedValue(
+        new Error("Failed to extract userId")
       );
 
       const response = await request(app).get("/stats");

@@ -76,9 +76,13 @@ describe("UserController", () => {
       });
 
       const response = await request(app).post("/login").send(mockUserData);
+      const expectedResponse = {
+        message: "Login successful",
+        data: { id: "1", email: mockUserData.email },
+      };
 
       expect(response.status).toBe(200);
-      expect(response.body.message).toBe("Login successful");
+      expect(response.body).toStrictEqual(expectedResponse);
       expect(mockUserService.login).toHaveBeenCalledWith(
         mockUserData.email,
         mockUserData.password
@@ -91,7 +95,7 @@ describe("UserController", () => {
         .send({ email: "", password: "password123" });
 
       expect(response.status).toBe(400);
-      expect(response.body.message).toBe("Email and password are required");
+      expect(response.text).toBe("Email and password are required");
     });
 
     it("should return error if login fails", async () => {

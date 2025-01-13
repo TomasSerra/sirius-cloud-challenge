@@ -8,7 +8,6 @@ class FileService {
     dailyStorageRepository,
     userRepository,
     transactionalManager,
-    extractUserIdFromToken,
     hashFilename,
   }) {
     this.storageManager = storageManager;
@@ -17,12 +16,10 @@ class FileService {
     this.dailyStorageRepository = dailyStorageRepository;
     this.userRepository = userRepository;
     this.transactionalManager = transactionalManager;
-    this.extractUserIdFromToken = extractUserIdFromToken;
     this.hashFilename = hashFilename;
   }
 
-  async upload(file, req) {
-    const userId = await this.extractUserIdFromToken(req);
+  async upload(file, userId) {
     if (!userId || !file) {
       throw getResponse(400, "userId and file are required");
     }
@@ -58,8 +55,7 @@ class FileService {
     }
   }
 
-  async download(fileId, req) {
-    const userId = await this.extractUserIdFromToken(req);
+  async download(fileId, userId) {
     const file = await this.#getOwnOrSharedFile(fileId, userId);
     const cloudFilename = file.cloudFileName;
     const ownerUserId = file.userId;
@@ -70,8 +66,7 @@ class FileService {
     return await this.storageManager.downloadFile(cloudFilename, ownerUserId);
   }
 
-  async share(toUserId, fileId, req) {
-    const userId = await this.extractUserIdFromToken(req);
+  async share(toUserId, fileId, userId) {
     if (!userId || !fileId || !toUserId) {
       throw getResponse(400, "userId, filename, and toUserId are required");
     }

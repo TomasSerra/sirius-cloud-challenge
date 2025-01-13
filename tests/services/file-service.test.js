@@ -8,7 +8,6 @@ describe("FileService", () => {
     mockFileRepository,
     mockDailyStorageRepository,
     mockTransactionalManager,
-    mockExtractUserIdFromToken,
     mockHashFilename,
     mockProviders,
     mockShareRepository,
@@ -35,7 +34,6 @@ describe("FileService", () => {
       findByUserIdAndDate: jest.fn(),
     };
     mockTransactionalManager = { transaction: jest.fn() };
-    mockExtractUserIdFromToken = jest.fn().mockResolvedValue("user123");
     mockHashFilename = jest.fn().mockReturnValue("hashed-filename");
 
     fileService = new FileService({
@@ -45,7 +43,6 @@ describe("FileService", () => {
       userRepository: mockUserRepository,
       dailyStorageRepository: mockDailyStorageRepository,
       transactionalManager: mockTransactionalManager,
-      extractUserIdFromToken: mockExtractUserIdFromToken,
       hashFilename: mockHashFilename,
     });
 
@@ -53,11 +50,20 @@ describe("FileService", () => {
   });
 
   describe("upload file", () => {
-    it("should throw an error if userId or file is missing", async () => {
-      const req = {};
+    it("should throw an error if userId is missing", async () => {
+      const userId = null;
+      const file = { size: 1024 ** 2, originalname: "testfile.txt" };
+
+      await expect(fileService.upload(file, userId)).rejects.toThrow(
+        "userId and file are required"
+      );
+    });
+
+    it("should throw an error if file is missing", async () => {
+      const userId = "cnwo243no4n2j";
       const file = null;
 
-      await expect(fileService.upload(file, req)).rejects.toThrow(
+      await expect(fileService.upload(file, userId)).rejects.toThrow(
         "userId and file are required"
       );
     });
@@ -65,10 +71,10 @@ describe("FileService", () => {
     it("should throw an error if monthly storage limit is exceeded", async () => {
       mockDailyStorageRepository.findTotalMbUsedByMonth.mockResolvedValue(6000);
 
-      const req = {};
+      const userId = "user123";
       const file = { size: 1024 ** 2, originalname: "testfile.txt" };
 
-      await expect(fileService.upload(file, req)).rejects.toThrow(
+      await expect(fileService.upload(file, userId)).rejects.toThrow(
         "Monthly storage limit exceeded, try again next month"
       );
     });
@@ -82,20 +88,20 @@ describe("FileService", () => {
         async (callback) => callback()
       );
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const file = { size: 1024 ** 2, originalname: "testfile.txt" };
 
-      await fileService.upload(file, req);
+      await fileService.upload(file, userId);
 
       expect(mockProviders[0].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockProviders[1].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockTransactionalManager.transaction).toHaveBeenCalled();
     });
@@ -109,20 +115,20 @@ describe("FileService", () => {
         async (callback) => callback()
       );
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const file = { size: 1024 ** 2, originalname: "testfile.txt" };
 
-      await fileService.upload(file, req);
+      await fileService.upload(file, userId);
 
       expect(mockProviders[0].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockProviders[1].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockTransactionalManager.transaction).toHaveBeenCalled();
     });
@@ -136,22 +142,22 @@ describe("FileService", () => {
         async (callback) => callback()
       );
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const file = { size: 1024 ** 2, originalname: "testfile.txt" };
 
-      await expect(fileService.upload(file, req)).rejects.toThrow(
+      await expect(fileService.upload(file, userId)).rejects.toThrow(
         "An error occurred uploading the file"
       );
 
       expect(mockProviders[0].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockProviders[1].upload).toHaveBeenCalledWith(
         file,
         "hashed-filename",
-        "user123"
+        userId
       );
       expect(mockTransactionalManager.transaction).toHaveBeenCalled();
     });
@@ -161,53 +167,56 @@ describe("FileService", () => {
     it("should throw an error if the file is not found", async () => {
       mockFileRepository.findByFileId.mockResolvedValue(null);
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const fileId = "file123";
 
-      await expect(fileService.download(fileId, req)).rejects.toThrow(
+      await expect(fileService.download(fileId, userId)).rejects.toThrow(
         "File not found"
       );
     });
 
     it("should throw an error if the user is not authorized", async () => {
-      mockFileRepository.findByFileId.mockResolvedValue({ userId: "owner123" });
       mockShareRepository.findByFileIdAndToUserId.mockResolvedValue(null);
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
+      mockFileRepository.findByFileId.mockResolvedValue({
+        userId: "otherUserId",
+      });
       const fileId = "file123";
+      mockShareRepository.findByFileIdAndToUserId.mockResolvedValue(null);
 
-      await expect(fileService.download(fileId, req)).rejects.toThrow(
+      await expect(fileService.download(fileId, userId)).rejects.toThrow(
         "You are not authorized to view this file"
       );
     });
 
     it("should download the file if user is authorized and one provider is ok", async () => {
+      const userId = "cnwo243no4n2j";
       mockFileRepository.findByFileId.mockResolvedValue({
-        userId: "user123",
+        userId: userId,
         cloudFileName: "cloudFile",
       });
       mockProviders[0].download.mockResolvedValue("fileContent");
 
-      const req = {};
       const fileId = "file123";
 
-      const result = await fileService.download(fileId, req);
+      const result = await fileService.download(fileId, userId);
 
       expect(result).toBe("fileContent");
       expect(mockProviders[0].download).toHaveBeenCalledWith(
         "cloudFile",
-        "user123"
+        userId
       );
     });
   });
 
   describe("share file", () => {
     it("should throw an error if userId, fileId, or toUserId is missing", async () => {
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const fileId = null;
       const toUserId = null;
 
-      await expect(fileService.share(toUserId, fileId, req)).rejects.toThrow(
+      await expect(fileService.share(toUserId, fileId, userId)).rejects.toThrow(
         "userId, filename, and toUserId are required"
       );
     });
@@ -215,11 +224,11 @@ describe("FileService", () => {
     it("should throw an error if the file is not found", async () => {
       mockFileRepository.findByFileId.mockResolvedValue(null);
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const fileId = "file123";
       const toUserId = "user456";
 
-      await expect(fileService.share(toUserId, fileId, req)).rejects.toThrow(
+      await expect(fileService.share(toUserId, fileId, userId)).rejects.toThrow(
         "File not found"
       );
     });
@@ -227,55 +236,54 @@ describe("FileService", () => {
     it("should throw an error if the user is not authorized to share the file", async () => {
       mockFileRepository.findByFileId.mockResolvedValue({ userId: "owner123" });
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
       const fileId = "file123";
       const toUserId = "user456";
 
-      await expect(fileService.share(toUserId, fileId, req)).rejects.toThrow(
+      await expect(fileService.share(toUserId, fileId, userId)).rejects.toThrow(
         "You are not authorized to share this file"
       );
     });
 
     it("should throw an error if the user tries to share the file with themselves", async () => {
-      mockFileRepository.findByFileId.mockResolvedValue({ userId: "user123" });
-
-      const req = {};
+      const userId = "cnwo243no4n2j";
+      mockFileRepository.findByFileId.mockResolvedValue({ userId: userId });
       const fileId = "file123";
-      const toUserId = "user123";
+      const toUserId = userId;
 
-      await expect(fileService.share(toUserId, fileId, req)).rejects.toThrow(
+      await expect(fileService.share(toUserId, fileId, userId)).rejects.toThrow(
         "You cannot share a file with yourself"
       );
     });
 
     it("should throw an error if the target user does not exist", async () => {
-      mockFileRepository.findByFileId.mockResolvedValue({ userId: "user123" });
       mockUserRepository.findByUserId.mockResolvedValue(null);
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
+      mockFileRepository.findByFileId.mockResolvedValue({ userId: userId });
       const fileId = "file123";
       const toUserId = "user456";
 
-      await expect(fileService.share(toUserId, fileId, req)).rejects.toThrow(
-        "User user456 not found"
+      await expect(fileService.share(toUserId, fileId, userId)).rejects.toThrow(
+        `User ${toUserId} not found`
       );
     });
 
     it("should share the file successfully", async () => {
-      mockFileRepository.findByFileId.mockResolvedValue({ userId: "user123" });
-      mockUserRepository.findByUserId.mockResolvedValue({ id: "user456" });
       mockShareRepository.create.mockResolvedValue();
 
-      const req = {};
+      const userId = "cnwo243no4n2j";
+      mockFileRepository.findByFileId.mockResolvedValue({ userId: userId });
       const fileId = "file123";
       const toUserId = "user456";
+      mockUserRepository.findByUserId.mockResolvedValue({ id: toUserId });
 
-      await fileService.share(toUserId, fileId, req);
+      await fileService.share(toUserId, fileId, userId);
 
       expect(mockShareRepository.create).toHaveBeenCalledWith(
-        "user123",
-        "user456",
-        "file123"
+        userId,
+        toUserId,
+        fileId
       );
     });
   });
