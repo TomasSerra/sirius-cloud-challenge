@@ -11,6 +11,10 @@ class UserController {
     try {
       const { email, password } = req.body;
 
+      if (!email || !password) {
+        return res.status(400).send("Email and password are required");
+      }
+
       const result = await this.userService.register(email, password);
 
       return res.status(200).json({
@@ -18,7 +22,7 @@ class UserController {
         data: result,
       });
     } catch (error) {
-      console.error("Error during registration:", error.message);
+      console.error("Error during user registration:", error.message);
       return this.resolveError(error, res);
     }
   }
@@ -28,9 +32,7 @@ class UserController {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res
-          .status(400)
-          .json({ message: "Email and password are required" });
+        return res.status(400).send("Email and password are required");
       }
 
       const result = await this.userService.login(email, password);
@@ -39,7 +41,7 @@ class UserController {
         .status(200)
         .json({ message: "Login successful", data: result });
     } catch (error) {
-      console.error("Error during login:", error.message);
+      console.error("Error during user login:", error.message);
       return this.resolveError(error, res);
     }
   }

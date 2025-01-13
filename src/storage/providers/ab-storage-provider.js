@@ -42,8 +42,6 @@ class AzureStorageProvider extends StorageProvider {
       await blockBlobClient.uploadData(file.buffer, {
         blobHTTPHeaders: { blobContentType: file.mimetype },
       });
-
-      return `https://${process.env.AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/${this.containerName}/${blobName}`;
     } catch (error) {
       console.error("An error occurred uploading the file:", error);
       if (error.response) {

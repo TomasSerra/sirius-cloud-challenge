@@ -8,10 +8,9 @@ class AdminService {
   }
 
   async getStats(req) {
-    const userId = await extractUserIdFromToken(req);
-    if (!userId) {
-      throw getResponse(400, "userId is required");
-    }
+    const userId = await extractUserIdFromToken(req).catch((error) => {
+      throw getResponse(400, error.message);
+    });
     await this.#checkPermission(userId);
     return await this.dailyStorageRepository.findAllToday();
   }

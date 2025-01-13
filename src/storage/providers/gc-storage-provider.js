@@ -35,8 +35,6 @@ class GCSStorageProvider extends StorageProvider {
         blobStream.on("error", reject);
         blobStream.end(file.buffer);
       });
-
-      return `https://storage.googleapis.com/${this.bucketName}/${filePath}`;
     } catch (error) {
       console.error("An error occurred uploading the file:", error);
       if (error.response) {

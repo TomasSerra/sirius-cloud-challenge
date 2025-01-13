@@ -33,7 +33,9 @@ class FileController {
       return res.status(200).send("File uploaded successfully");
     } catch (err) {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-        return res.status(413).send("File size exceeds the limit");
+        return res
+          .status(413)
+          .send(`File size exceeds the limit of ${maxFileSize}mb`);
       }
       console.error("Error during file upload:", err.message);
       return this.resolveError(err, res);

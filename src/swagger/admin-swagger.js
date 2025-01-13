@@ -2,7 +2,7 @@
  * @swagger
  * /api/admin/stats:
  *   get:
- *     summary: Get stats about the storage used today by all users
+ *     summary: Get stats about the storage used today by all users (Only for admins)
  *     tags:
  *          - Admin
  *     security:
@@ -28,11 +28,11 @@
  *                         description: User Id
  *                         example: 746bf3nf43nf42409
  *                       mbUsed:
- *                         type: number # Cambiado de float a number
+ *                         type: number
  *                         description: Megabytes used today
  *                         example: 60.78
- *       401:
- *         description: Unauthorized - Invalid token
  *       403:
  *         description: Forbidden - User is not authorized to view this data
+ *       400:
+ *         description: Bad Request - Token not provided or invalid format
  */

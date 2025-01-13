@@ -40,7 +40,7 @@
  *                       example: "2025-01-08T12:52:46.984Z"
  *                     email:
  *                       type: string
- *                       example: "c@gmail.com"
+ *                       example: "user@example.com"
  *                     email_verified:
  *                       type: boolean
  *                       example: false
@@ -63,10 +63,10 @@
  *                             example: false
  *                     name:
  *                       type: string
- *                       example: "c@gmail.com"
+ *                       example: "user@example.com"
  *                     nickname:
  *                       type: string
- *                       example: "c"
+ *                       example: "user"
  *                     picture:
  *                       type: string
  *                       example: "https://s.gravatar.com/avatar/316a26014c6e203f76d222f326462753?s=480&r=pg&d=https%3A%2F%2Fcdn.auth0.com%2Favatars%2Fc.png"
@@ -78,12 +78,13 @@
  *                       type: string
  *                       example: "auth0|677e751ebecbc7810f7a8556"
  *       400:
- *         description: Bad Request - Invalid input data
+ *         description: Bad Request - Email and password are required
+ *       409:
+ *         description: Conflict - The user already exists
  *       500:
  *         description: Internal Server Error - Server error occurred
  */
 
-// Swagger configuration
 /**
  * @swagger
  * /api/auth/login:
@@ -130,16 +131,16 @@
  *                       example: "read:files write:files read:users create:users"
  *                     expires_in:
  *                       type: integer
- *                       description: The expiration time in seconds (86400 = 1 day)
- *                       example: 86400
+ *                       description: The expiration time in seconds (3600 = 1 hour)
+ *                       example: 3600
  *                     token_type:
  *                       type: string
- *                       description: Type of the token, typically "Bearer"
+ *                       description: Type of the token
  *                       example: "Bearer"
  *       400:
  *         description: Bad Request - Invalid input data
- *       401:
- *         description: Unauthorized - Invalid email or password
+ *       403:
+ *         description: Forbiden - Wrong email or password
  *       500:
  *         description: Internal Server Error - Server error occurred
  */
