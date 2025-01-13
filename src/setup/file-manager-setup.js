@@ -18,7 +18,7 @@ export function setupFileController() {
   const dailyStorageRepository = new DailyStorageRepository();
   const userRepository = new UserRepository();
   const transactionalManager = new TransactionManager();
-  const providers = [new GCSStorageProvider(), new AzureStorageProvider()];
+  const providers = [new AzureStorageProvider(), new GCSStorageProvider()];
   const storageManager = new StorageManager({ providers });
 
   const fileService = new FileService({
@@ -28,12 +28,12 @@ export function setupFileController() {
     userRepository,
     storageManager,
     transactionalManager,
-    extractUserIdFromToken,
     hashFilename,
   });
 
   const fileController = new FileController({
     fileService,
+    extractUserIdFromToken,
     resolveError,
   });
 

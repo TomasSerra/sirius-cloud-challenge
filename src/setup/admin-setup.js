@@ -3,6 +3,7 @@ import { UserRepository } from "../repositories/user-repository.js";
 import AdminService from "../services/admin-services.js";
 import AdminController from "../controllers/admin-controllers.js";
 import { resolveError } from "../responses/response-handler.js";
+import { extractUserIdFromToken } from "../utils/decode-token.js";
 
 export function setupAdminController() {
   const dailyStorageRepository = new DailyStorageRepository();
@@ -15,6 +16,7 @@ export function setupAdminController() {
 
   const adminController = new AdminController({
     adminService,
+    extractUserIdFromToken,
     resolveError,
   });
 
